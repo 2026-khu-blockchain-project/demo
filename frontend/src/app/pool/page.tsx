@@ -59,7 +59,7 @@ export default function PoolPage() {
             <span className="brand-mark" aria-hidden />
             <div>
               <h1>풀 배팅 마켓</h1>
-              <p className="brand-tag">최대 10명 · 유저당 최대 1,000 USDC · Pot 비율 → 확률·배당</p>
+              <p className="brand-tag">최대 10명 · 슬롯당 한쪽만 · 유저당 최대 1,000 USDC · Pot·인원 기준 확률</p>
             </div>
           </div>
           {demoOnly && <span className="pill-env">연습</span>}
@@ -77,13 +77,27 @@ export default function PoolPage() {
         )}
 
         <article className="market-hero">
-          <p className="muted small">Polymarket과 유사한 &quot;풀 기준 내재 확률&quot; (패리뮤추얼 규칙 · CLOB 아님)</p>
+          <p className="muted small">
+            각 유저(슬롯)는 YES 또는 NO 중 한쪽만 걸 수 있습니다. 표시되는 &quot;내재 확률&quot;은{" "}
+            <strong>Pot 금액 비율</strong>이며, &quot;인원 비율&quot;은 <strong>한쪽만 배팅한 슬롯 수</strong>
+            로 부른 예측입니다.
+          </p>
           <h2 className="question">{QUESTION}</h2>
           <PoolBar yes={demo.totalYes} no={demo.totalNo} />
           <dl className="odds-grid">
             <div>
-              <dt>내재 확률 (YES)</dt>
+              <dt>내재 확률 (YES, Pot 비율)</dt>
               <dd>{pYes.toFixed(1)}%</dd>
+            </div>
+            <div>
+              <dt>인원 비율 (YES, 1인 1표)</dt>
+              <dd>
+                {(() => {
+                  const n = demo.sideParticipants.yesOnly + demo.sideParticipants.noOnly;
+                  if (n === 0) return "50.0% (참가 0명)";
+                  return `${(Number(demo.impliedYesByParticipantsBps) / 100).toFixed(1)}% (${demo.sideParticipants.yesOnly}명 vs ${demo.sideParticipants.noOnly}명)`;
+                })()}
+              </dd>
             </div>
             <div>
               <dt>풀 규모 (YES / NO)</dt>
@@ -196,7 +210,8 @@ export default function PoolPage() {
           <summary>규칙 (Solidity 동일)</summary>
           <ul className="explain-list">
             <li>별도 주소 최대 10명까지 참여 (연습은 유저 슬롯 10).</li>
-            <li>한 슬롯(주소)당 YES+NO 합산 최대 1,000 USDC.</li>
+            <li>한 슬롯(주소)당 YES 또는 NO 한쪽만 (동시 헤지 불가).</li>
+            <li>한 슬롯당 YES+NO 합산 최대 1,000 USDC.</li>
             <li>정산 후 승리 편 참가자가 전체 Pot을 해당 편 예치금 비율로 나눔.</li>
             <li>
               컨트랙트는 <code>PoolBinaryMarket.sol</code> · 실제 거래는 <code>/pool</code>에서 환경
@@ -223,7 +238,7 @@ export default function PoolPage() {
           <span className="brand-mark" aria-hidden />
           <div>
             <h1>풀 배팅 마켓</h1>
-            <p className="brand-tag">온체인 PoolBinaryMarket + MetaMask</p>
+            <p className="brand-tag">주소당 YES·NO 한쪽만 · 최대 10명 · 온체인 PoolBinaryMarket</p>
           </div>
         </div>
       </header>
@@ -266,12 +281,27 @@ export default function PoolPage() {
       </section>
 
       <article className="market-hero">
+        <p className="muted small">
+          같은 주소로 YES와 NO에 동시에 거는 것은 불가합니다. 아래 &quot;내재 확률&quot;은{" "}
+          <strong>Pot 금액</strong>, 인원 비율은 각 주소가 선택한 <strong>한쪽만</strong> 집계합니다.
+        </p>
         <h2 className="question">{QUESTION}</h2>
         <PoolBar yes={chain.totalYes} no={chain.totalNo} />
         <dl className="odds-grid">
           <div>
-            <dt>내재 확률 (YES)</dt>
+            <dt>내재 확률 (YES, Pot 비율)</dt>
             <dd>{pYes.toFixed(1)}%</dd>
+          </div>
+          <div>
+            <dt>인원 비율 (YES, 1인 1표)</dt>
+            <dd>
+              {(() => {
+                const hn = chain.sideYesOnlyCount + chain.sideNoOnlyCount;
+                if (hn === 0) return "50.0% (참가 0명)";
+                const bps = Math.floor((chain.sideYesOnlyCount * 10000) / hn);
+                return `${(bps / 100).toFixed(1)}% (${chain.sideYesOnlyCount}명 vs ${chain.sideNoOnlyCount}명)`;
+              })()}
+            </dd>
           </div>
           <div>
             <dt>참여자 수</dt>

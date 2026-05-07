@@ -60,6 +60,23 @@ export function usePoolMarketDemo() {
     [slots]
   );
 
+  /** 배팅만 한 슬롯: 한쪽만 허용이라 yes-only / no-only 만 존재 */
+  const sideParticipants = useMemo(() => {
+    let yesOnly = 0;
+    let noOnly = 0;
+    for (const s of slots) {
+      if (s.yes > 0n && s.no === 0n) yesOnly++;
+      else if (s.no > 0n && s.yes === 0n) noOnly++;
+    }
+    return { yesOnly, noOnly };
+  }, [slots]);
+
+  const impliedYesByParticipantsBps = useMemo(() => {
+    const n = sideParticipants.yesOnly + sideParticipants.noOnly;
+    if (n === 0) return 5000n;
+    return (BigInt(sideParticipants.yesOnly) * 10000n) / BigInt(n);
+  }, [sideParticipants]);
+
   const bps = impliedYesBps(totals.totalYes, totals.totalNo);
   const yesM = multE4(totals.totalYes, totals.totalNo, true);
   const noM = multE4(totals.totalYes, totals.totalNo, false);
@@ -83,6 +100,8 @@ export function usePoolMarketDemo() {
         const cur = s.yes + s.no;
         if (cur + amt > MAX_STAKE) throw new Error("유저당 최대 1,000 USDC까지.");
         if (s.virtualUsdc < amt) throw new Error("가상 USDC 부족.");
+        if (yes && s.no > 0n) throw new Error("이미 NO에 걸었습니다. 슬롯당 한쪽만.");
+        if (!yes && s.yes > 0n) throw new Error("이미 YES에 걸었습니다. 슬롯당 한쪽만.");
 
         setSlots((prev) => {
           const next = [...prev];
@@ -177,6 +196,8 @@ export function usePoolMarketDemo() {
     setActiveIdx,
     active,
     participantCount,
+    sideParticipants,
+    impliedYesByParticipantsBps,
     totalYes: totals.totalYes,
     totalNo: totals.totalNo,
     impliedYesBps: bps,

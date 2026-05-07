@@ -11,6 +11,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
  * @dev Polymarket CLOB/AMM과는 다르지만, Pot 기준 확률·승자 배분 흐름을 단순히 온체인화.
  *      - 최대 참가자 10명 (서로 다른 주소)
  *      - 주소당 총 예치 상한 1000 USDC (6 decimals)
+ *      - 주소당 YES·NO 동시 예치 불가 (한 시장에서 한쪽만)
  */
 contract PoolBinaryMarket is Ownable, ReentrancyGuard {
     IERC20 public immutable usdc;
@@ -80,6 +81,11 @@ contract PoolBinaryMarket is Ownable, ReentrancyGuard {
 
         uint256 prev = yesOf[msg.sender] + noOf[msg.sender];
         require(prev + amount <= MAX_STAKE_PER_USER, "per-user cap 1000");
+        if (yes) {
+            require(noOf[msg.sender] == 0, "one side only");
+        } else {
+            require(yesOf[msg.sender] == 0, "one side only");
+        }
 
         if (!isListed[msg.sender]) {
             require(participantList.length < MAX_PARTICIPANTS, "max 10 users");

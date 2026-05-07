@@ -10,6 +10,7 @@ import {
   type Signer,
 } from "ethers";
 import { PoolBinaryMarketAbi } from "@/abis/PoolBinaryMarket";
+import { getBrowserEthereum } from "@/lib/injectedEthereum";
 
 const ERC20_ABI = [
   "function approve(address spender, uint256 amount) returns (bool)",
@@ -78,6 +79,8 @@ export function usePoolMarket() {
   const [outcome, setOutcome] = useState(0);
   const [resolved, setResolved] = useState(false);
   const [participants, setParticipants] = useState(0n);
+  const [sideYesOnlyCount, setSideYesOnlyCount] = useState(0);
+  const [sideNoOnlyCount, setSideNoOnlyCount] = useState(0);
   const [myYes, setMyYes] = useState(0n);
   const [myNo, setMyNo] = useState(0n);
   const [usdcBal, setUsdcBal] = useState(0n);
@@ -95,9 +98,7 @@ export function usePoolMarket() {
 
   const refresh = useCallback(async () => {
     if (!configured || !poolAddress || !usdcAddress) return;
-    const eth = typeof window !== "undefined"
-      ? (window as unknown as { ethereum?: Eip1193Provider }).ethereum
-      : undefined;
+    const eth = getBrowserEthereum();
     if (!eth) return;
     setError(null);
     try {
@@ -110,7 +111,20 @@ export function usePoolMarket() {
       setNoMultE4(await read.noPoolMultiplierE4());
       setOutcome(Number(await read.outcome()));
       setResolved(await read.resolved());
-      setParticipants(await read.participantCount());
+      const pc: bigint = await read.participantCount();
+      setParticipants(pc);
+      let yc = 0;
+      let nc = 0;
+      const n = Number(pc);
+      for (let i = 0; i < n; i++) {
+        const addr: string = await read.participantAt(i);
+        const y: bigint = await read.yesOf(addr);
+        const noAmt: bigint = await read.noOf(addr);
+        if (y > 0n && noAmt === 0n) yc++;
+        else if (noAmt > 0n && y === 0n) nc++;
+      }
+      setSideYesOnlyCount(yc);
+      setSideNoOnlyCount(nc);
       setOwner(await read.owner());
 
       const usdcRead = new Contract(usdcAddress, ERC20_ABI, provider);
@@ -140,13 +154,14 @@ export function usePoolMarket() {
       setError("NEXT_PUBLIC_POOL_MARKET_ADDRESS / NEXT_PUBLIC_USDC_ADDRESS를 설정하세요.");
       return;
     }
-    if (typeof window === "undefined" || !(window as unknown as { ethereum?: unknown }).ethereum) {
+    const ethInjected = getBrowserEthereum();
+    if (!ethInjected) {
       setError("MetaMask가 필요합니다.");
       return;
     }
     setBusy(true);
     try {
-      const eth = (window as unknown as { ethereum: Eip1193Provider }).ethereum;
+      const eth = ethInjected;
       const provider = new BrowserProvider(eth);
       await provider.send("eth_requestAccounts", []);
       const s = await provider.getSigner();
@@ -169,7 +184,7 @@ export function usePoolMarket() {
 
   const switchToExpectedNetwork = useCallback(async () => {
     if (expectedChainId == null) return;
-    const eth = (window as unknown as { ethereum?: Eip1193Provider }).ethereum;
+    const eth = getBrowserEthereum();
     if (!eth) {
       setError("MetaMask가 필요합니다.");
       return;
@@ -287,6 +302,8 @@ export function usePoolMarket() {
     outcome,
     resolved,
     participants,
+    sideYesOnlyCount,
+    sideNoOnlyCount,
     myYes,
     myNo,
     usdcBal,

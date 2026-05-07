@@ -10,6 +10,7 @@ import {
   type Signer,
 } from "ethers";
 import { PolyPredictAbi } from "@/abis/PolyPredict";
+import { getBrowserEthereum } from "@/lib/injectedEthereum";
 
 const ERC20_ABI = [
   "function approve(address spender, uint256 amount) returns (bool)",
@@ -103,9 +104,7 @@ export function usePolyPredict() {
 
   const refresh = useCallback(async () => {
     if (!configured || !polyAddress || !usdcAddress) return;
-    const eth = typeof window !== "undefined"
-      ? (window as unknown as { ethereum?: Eip1193Provider }).ethereum
-      : undefined;
+    const eth = getBrowserEthereum();
     if (!eth) return;
 
     setError(null);
@@ -136,7 +135,17 @@ export function usePolyPredict() {
         setUsdcBal(0n);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      const msg = e instanceof Error ? e.message : String(e);
+      const badCall =
+        msg.includes("CALL_EXCEPTION") ||
+        msg.includes("missing revert") ||
+        msg.includes("BAD_DATA");
+      setError(
+        badCall
+          ? "PolyPredict 주소가 현재 체인과 맞지 않거나, USDC·컨트랙트 주소가 뒤바뀌었을 수 있습니다. `npx hardhat node` 실행 후 프로젝트 루트에서 `npm run deploy:local`로 다시 배포하세요.\n" +
+              msg
+          : msg
+      );
     }
   }, [address, configured, polyAddress, usdcAddress]);
 
@@ -150,13 +159,14 @@ export function usePolyPredict() {
       setError("NEXT_PUBLIC_CONTRACT_ADDRESS / NEXT_PUBLIC_USDC_ADDRESS를 설정하세요.");
       return;
     }
-    if (typeof window === "undefined" || !(window as unknown as { ethereum?: unknown }).ethereum) {
+    const ethInjected = getBrowserEthereum();
+    if (!ethInjected) {
       setError("MetaMask가 필요합니다.");
       return;
     }
     setBusy(true);
     try {
-      const eth = (window as unknown as { ethereum: Eip1193Provider }).ethereum;
+      const eth = ethInjected;
       const provider = new BrowserProvider(eth);
       await provider.send("eth_requestAccounts", []);
       const s = await provider.getSigner();
@@ -179,7 +189,7 @@ export function usePolyPredict() {
 
   const switchToExpectedNetwork = useCallback(async () => {
     if (expectedChainId == null) return;
-    const eth = (window as unknown as { ethereum?: Eip1193Provider }).ethereum;
+    const eth = getBrowserEthereum();
     if (!eth) {
       setError("MetaMask가 필요합니다.");
       return;
