@@ -3,6 +3,8 @@
 /* eslint-disable */
 export type { MockUSDC } from './MockUSDC.js';
 export type { PolyPredict } from './PolyPredict.js';
+export type { PoolBinaryMarket } from './PoolBinaryMarket.js';
 export * as factories from './factories/index.js';
 export { MockUSDC__factory } from './factories/MockUSDC__factory.js';
 export { PolyPredict__factory } from './factories/PolyPredict__factory.js';
+export { PoolBinaryMarket__factory } from './factories/PoolBinaryMarket__factory.js';

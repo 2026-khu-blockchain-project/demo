@@ -3,3 +3,4 @@
 /* eslint-disable */
 export { MockUSDC__factory } from './MockUSDC__factory.js';
 export { PolyPredict__factory } from './PolyPredict__factory.js';
+export { PoolBinaryMarket__factory } from './PoolBinaryMarket__factory.js';

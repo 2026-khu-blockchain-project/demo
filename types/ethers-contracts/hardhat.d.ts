@@ -12,15 +12,19 @@ declare module "@nomicfoundation/hardhat-ethers/types" {
   interface HardhatEthersHelpers extends HardhatEthersHelpersBase {
   getContractFactory(name: 'MockUSDC', signerOrOptions?: ethers.Signer | FactoryOptions): Promise<Contracts.MockUSDC__factory>
 getContractFactory(name: 'PolyPredict', signerOrOptions?: ethers.Signer | FactoryOptions): Promise<Contracts.PolyPredict__factory>
+getContractFactory(name: 'PoolBinaryMarket', signerOrOptions?: ethers.Signer | FactoryOptions): Promise<Contracts.PoolBinaryMarket__factory>
 
   getContractAt(name: 'MockUSDC', address: string | ethers.Addressable, signer?: ethers.Signer): Promise<Contracts.MockUSDC>
 getContractAt(name: 'PolyPredict', address: string | ethers.Addressable, signer?: ethers.Signer): Promise<Contracts.PolyPredict>
+getContractAt(name: 'PoolBinaryMarket', address: string | ethers.Addressable, signer?: ethers.Signer): Promise<Contracts.PoolBinaryMarket>
 
   deployContract(name: 'MockUSDC', signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<Contracts.MockUSDC>
 deployContract(name: 'PolyPredict', signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<Contracts.PolyPredict>
+deployContract(name: 'PoolBinaryMarket', signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<Contracts.PoolBinaryMarket>
 
   deployContract(name: 'MockUSDC', args: any[], signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<Contracts.MockUSDC>
 deployContract(name: 'PolyPredict', args: any[], signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<Contracts.PolyPredict>
+deployContract(name: 'PoolBinaryMarket', args: any[], signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<Contracts.PoolBinaryMarket>
 
     // default types
     getContractFactory(

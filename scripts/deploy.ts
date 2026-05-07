@@ -23,7 +23,7 @@ async function main() {
   let usdcAddress: string;
 
   if (networkName === "localhost" || networkName === "amoy") {
-    console.log("\n[1/2] MockUSDC 배포 중...");
+    console.log("\n[1/3] MockUSDC 배포 중...");
     const MockUSDC = await ethers.getContractFactory("MockUSDC");
     const mockUsdc = await MockUSDC.deploy();
     await mockUsdc.waitForDeployment();
@@ -38,12 +38,19 @@ async function main() {
     console.log("실제 USDC 주소 사용:", usdcAddress);
   }
 
-  console.log("\n[2/2] PolyPredict 배포 중...");
+  console.log("\n[2/3] PolyPredict 배포 중...");
   const PolyPredict = await ethers.getContractFactory("PolyPredict");
   const polyPredict = await PolyPredict.deploy(usdcAddress);
   await polyPredict.waitForDeployment();
   const polyPredictAddress = await polyPredict.getAddress();
   console.log("PolyPredict 배포 완료:", polyPredictAddress);
+
+  console.log("\n[3/3] PoolBinaryMarket (풀 배팅) 배포 중...");
+  const PoolBinaryMarket = await ethers.getContractFactory("PoolBinaryMarket");
+  const poolBinaryMarket = await PoolBinaryMarket.deploy(usdcAddress);
+  await poolBinaryMarket.waitForDeployment();
+  const poolMarketAddress = await poolBinaryMarket.getAddress();
+  console.log("PoolBinaryMarket 배포 완료:", poolMarketAddress);
 
   if (networkName !== "polygon") {
     console.log("\n[보너스] 샘플 시장 생성 중...");
@@ -61,9 +68,11 @@ async function main() {
   console.log("==============================");
   console.log("USDC 주소      :", usdcAddress);
   console.log("PolyPredict 주소:", polyPredictAddress);
+  console.log("PoolBinaryMarket 주소:", poolMarketAddress);
   console.log("\nNext.js용 환경 변수:");
   console.log(`NEXT_PUBLIC_CONTRACT_ADDRESS=${polyPredictAddress}`);
   console.log(`NEXT_PUBLIC_USDC_ADDRESS=${usdcAddress}`);
+  console.log(`NEXT_PUBLIC_POOL_MARKET_ADDRESS=${poolMarketAddress}`);
 
   const autoWrite =
     networkName === "localhost" ||
@@ -82,6 +91,7 @@ async function main() {
     const body =
       `NEXT_PUBLIC_CONTRACT_ADDRESS=${polyPredictAddress}\n` +
       `NEXT_PUBLIC_USDC_ADDRESS=${usdcAddress}\n` +
+      `NEXT_PUBLIC_POOL_MARKET_ADDRESS=${poolMarketAddress}\n` +
       chainIdLine;
     fs.writeFileSync(envPath, body, "utf8");
     console.log("\n[frontend] 자동 저장:", envPath);

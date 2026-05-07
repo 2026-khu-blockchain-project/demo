@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { usePolyPredict } from "@/hooks/usePolyPredict";
 import { usePolyPredictDemo } from "@/hooks/usePolyPredictDemo";
@@ -64,6 +65,10 @@ export default function Home() {
         </div>
         {demoOnly && <span className="pill-env">연습 전용</span>}
       </header>
+
+      <nav className="subnav" aria-label="다른 마켓">
+        <Link href="/pool">풀 배팅 마켓 (YES/NO · Pot 기준 확률·배당) →</Link>
+      </nav>
 
       {!demoOnly && (
         <div className="mode-bar">
