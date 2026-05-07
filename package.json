@@ -1,0 +1,35 @@
+{
+  "name": "proj",
+  "version": "1.0.0",
+  "description": "**탈중앙화 예측 시장** — Solidity 스마트 컨트랙트를 이용한 Binary Option 정산 시스템",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "test:gas": "hardhat test --gas-stats",
+    "deploy:local": "hardhat run scripts/deploy.ts --network localhost",
+    "deploy:amoy": "hardhat run scripts/deploy.ts --network amoy"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^3.0.0",
+    "@nomicfoundation/hardhat-ethers": "^4.0.7",
+    "@nomicfoundation/hardhat-network-helpers": "^3.0.4",
+    "@nomicfoundation/hardhat-toolbox-mocha-ethers": "^3.0.4",
+    "@nomicfoundation/hardhat-verify": "^3.0.13",
+    "@openzeppelin/contracts": "^5.6.1",
+    "@types/chai": "^5.2.3",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^25.6.0",
+    "chai": "^6.2.2",
+    "dotenv": "^17.4.2",
+    "ethers": "^6.16.0",
+    "hardhat": "^3.4.3",
+    "mocha": "^11.7.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.2"
+  }
+}

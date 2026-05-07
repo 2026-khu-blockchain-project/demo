@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Next.js
+frontend/.next/
+frontend/out/
+
+# Hardhat
+artifacts/
+cache/
+
+# Env & secrets (예시 파일만 버전 관리)
+.env
+.env.local
+frontend/.env.local
+!.env.example
+!frontend/.env.local.example
+
+# Logs & OS
+*.log
+.DS_Store
+.npm-cache/
+
+# IDE
+.idea/
+*.swp
+*.swo
