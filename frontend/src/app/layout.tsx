@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "PolyPredict — 발표 데모",
-  description: "Solidity 예측 시장 컨트랙트 · 동작 원리 · 지갑 연결 데모",
+  title: "PolyPredict",
+  description: "USDC 담보 이진 예측 시장 — 지갑 연결 및 시장 참여",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

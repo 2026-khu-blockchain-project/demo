@@ -8,7 +8,15 @@ async function main() {
   const { ethers } = conn;
   const networkName = conn.networkName;
 
-  const [deployer] = await ethers.getSigners();
+  const signers = await ethers.getSigners();
+  const deployer = signers[0];
+  if (!deployer) {
+    throw new Error(
+      "배포용 계정이 없습니다.\n" +
+        "• Amoy: 프로젝트 루트에 `.env` 파일을 두고 `PRIVATE_KEY=` 뒤에 MetaMask에서 내보낸 비밀키를 넣으세요 (공백·따옴표 없이).\n" +
+        "• 로컬: `npx hardhat node` 실행 후 `npm run deploy:local` 을 쓰세요."
+    );
+  }
   console.log("배포 계정:", deployer.address);
   console.log("네트워크:", networkName);
 
