@@ -47,6 +47,10 @@ export default function Home() {
   const [approveAmt, setApproveAmt] = useState("100");
   const [mintAmt, setMintAmt] = useState("10");
 
+  const wrongChain = Boolean(
+    !demoOnly && activeMode === "chain" && chain.address && chain.isWrongNetwork
+  );
+
   return (
     <div className="page">
       <header className="header">
@@ -114,9 +118,10 @@ export default function Home() {
         ) : (
           <>
             <p className="muted">
-              로컬 체인은 MetaMask를 같은 RPC·Chain ID로 맞춘 뒤 연결합니다. 배포 주소는{" "}
-              <code>npm run deploy:local</code> 후 자동으로 <code>frontend/.env.local</code>에
-              기록됩니다.
+              <strong>과제·발표용:</strong> Polygon Amoy에 배포한 뒤 Vercel(또는 로컬)에 주소와{" "}
+              <code>NEXT_PUBLIC_CHAIN_ID=80002</code>를 넣고, MetaMask를 같은 네트워크로 맞춘 뒤
+              연결합니다. 로컬 Hardhat만 쓸 때는 <code>npm run deploy:local</code> 후{" "}
+              <code>NEXT_PUBLIC_CHAIN_ID=31337</code>를 추가하세요.
             </p>
             <div className="mode">
               <label>
@@ -127,7 +132,7 @@ export default function Home() {
                   onChange={() => setMode("chain")}
                   disabled={!chain.configured}
                 />{" "}
-                로컬 체인 (MetaMask · 실제 트랜잭션)
+                EVM 체인 (MetaMask · Amoy 또는 로컬)
               </label>
               <label>
                 <input
@@ -172,6 +177,22 @@ export default function Home() {
             {p.address}
             {p.chainId != null ? ` · chainId ${p.chainId}` : ""}
           </p>
+        )}
+        {wrongChain && (
+          <div className="warn compact">
+            <strong>네트워크 불일치:</strong> 이 사이트는 chainId{" "}
+            <strong>{chain.expectedChainId}</strong>에 배포된 컨트랙트를 사용합니다. MetaMask를
+            맞춘 뒤 새로고침하거나 아래를 누르세요.
+            <div className="actions" style={{ marginTop: "0.5rem" }}>
+              <button
+                type="button"
+                disabled={chain.busy}
+                onClick={() => void chain.switchToExpectedNetwork()}
+              >
+                Amoy / 로컬 네트워크로 전환
+              </button>
+            </div>
+          </div>
         )}
         {activeMode === "demo" && p.address && (
           <div className="demo-tools">
@@ -248,7 +269,7 @@ export default function Home() {
                     <button
                       type="button"
                       className="secondary"
-                      disabled={p.busy}
+                      disabled={p.busy || wrongChain}
                       onClick={() => void p.approve(approveAmt)}
                     >
                       approve
@@ -267,7 +288,7 @@ export default function Home() {
                     />
                     <button
                       type="button"
-                      disabled={p.busy || p.market.state !== 0}
+                      disabled={p.busy || wrongChain || p.market.state !== 0}
                       onClick={() => void p.mint(mintAmt)}
                     >
                       실행
@@ -362,6 +383,12 @@ export default function Home() {
             <code>{p.polyAddress}</code>
             {" · "}
             <code>{p.usdcAddress}</code>
+            {chain.expectedChainId != null && (
+              <span>
+                {" "}
+                · 기대 chainId <strong>{chain.expectedChainId}</strong>
+              </span>
+            )}
           </>
         )}
       </footer>

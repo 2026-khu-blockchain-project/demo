@@ -65,9 +65,16 @@ async function main() {
 
   if (autoWrite && !skipWrite) {
     const envPath = path.join(process.cwd(), "frontend", ".env.local");
+    const chainIdLine =
+      networkName === "amoy"
+        ? "NEXT_PUBLIC_CHAIN_ID=80002\n"
+        : networkName === "localhost"
+          ? "NEXT_PUBLIC_CHAIN_ID=31337\n"
+          : "";
     const body =
       `NEXT_PUBLIC_CONTRACT_ADDRESS=${polyPredictAddress}\n` +
-      `NEXT_PUBLIC_USDC_ADDRESS=${usdcAddress}\n`;
+      `NEXT_PUBLIC_USDC_ADDRESS=${usdcAddress}\n` +
+      chainIdLine;
     fs.writeFileSync(envPath, body, "utf8");
     console.log("\n[frontend] 자동 저장:", envPath);
   } else if (!autoWrite) {

@@ -26,15 +26,58 @@ export type MarketView = {
   totalCollateral: bigint;
 };
 
-function getEnv(): { poly: string; usdc: string } {
+function getEnv(): { poly: string; usdc: string; expectedChainId: number | null } {
+  const raw = process.env.NEXT_PUBLIC_CHAIN_ID?.trim();
+  let expectedChainId: number | null = null;
+  if (raw && /^\d+$/.test(raw)) {
+    const n = Number.parseInt(raw, 10);
+    if (Number.isFinite(n)) expectedChainId = n;
+  }
   return {
     poly: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS?.trim() ?? "",
     usdc: process.env.NEXT_PUBLIC_USDC_ADDRESS?.trim() ?? "",
+    expectedChainId,
   };
 }
 
+/** MetaMask에 네트워크 추가/전환 (Amoy · 로컬 Hardhat) */
+async function addOrSwitchChain(eth: Eip1193Provider, chainId: number) {
+  const hex = `0x${chainId.toString(16)}`;
+  try {
+    await eth.request?.({ method: "wallet_switchEthereumChain", params: [{ chainId: hex }] });
+    return;
+  } catch (e: unknown) {
+    const code = typeof e === "object" && e !== null && "code" in e ? (e as { code?: number }).code : undefined;
+    if (code !== 4902) throw e;
+  }
+
+  const params =
+    chainId === 80002
+      ? {
+          chainId: hex,
+          chainName: "Polygon Amoy",
+          nativeCurrency: { name: "MATIC", symbol: "MATIC", decimals: 18 },
+          rpcUrls: ["https://rpc-amoy.polygon.technology"],
+          blockExplorerUrls: ["https://amoy.polygonscan.com"],
+        }
+      : chainId === 31337
+        ? {
+            chainId: hex,
+            chainName: "Hardhat Local",
+            nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+            rpcUrls: ["http://127.0.0.1:8545"],
+          }
+        : null;
+
+  if (!params) {
+    throw new Error(`CHAIN_ID ${chainId}는 자동 추가를 지원하지 않습니다. MetaMask에 수동으로 네트워크를 추가하세요.`);
+  }
+
+  await eth.request?.({ method: "wallet_addEthereumChain", params: [params] });
+}
+
 export function usePolyPredict() {
-  const { poly: polyAddress, usdc: usdcAddress } = useMemo(() => getEnv(), []);
+  const { poly: polyAddress, usdc: usdcAddress, expectedChainId } = useMemo(() => getEnv(), []);
   const configured = Boolean(polyAddress && usdcAddress);
 
   const [signer, setSigner] = useState<Signer | null>(null);
@@ -128,6 +171,36 @@ export function usePolyPredict() {
     }
   }, [configured]);
 
+  const isWrongNetwork =
+    address != null &&
+    expectedChainId != null &&
+    chainId != null &&
+    chainId !== expectedChainId;
+
+  const switchToExpectedNetwork = useCallback(async () => {
+    if (expectedChainId == null) return;
+    const eth = (window as unknown as { ethereum?: Eip1193Provider }).ethereum;
+    if (!eth) {
+      setError("MetaMask가 필요합니다.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      await addOrSwitchChain(eth, expectedChainId);
+      const provider = new BrowserProvider(eth);
+      const net = await provider.getNetwork();
+      setChainId(Number(net.chainId));
+      const s = await provider.getSigner();
+      setSigner(s);
+      setAddress(await s.getAddress());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  }, [expectedChainId]);
+
   const approve = useCallback(
     async (humanAmount: string) => {
       if (!poly || !usdc || !polyAddress || !address) return;
@@ -211,6 +284,9 @@ export function usePolyPredict() {
     configured,
     polyAddress,
     usdcAddress,
+    expectedChainId,
+    isWrongNetwork,
+    switchToExpectedNetwork,
     connect,
     busy,
     error,

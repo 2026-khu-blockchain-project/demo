@@ -103,6 +103,22 @@ cd frontend
 npm run dev
 ```
 
+### 과제·발표용: MetaMask + Polygon Amoy
+
+수업 요건(솔리디티 + 상호작용 프론트 + MetaMask 연결)을 맞추려면 **테스트넷에 배포한 컨트랙트 주소**로 프론트를 열고, 지갑은 **같은 Chain ID**로 맞추면 됩니다.
+
+1. **Amoy MATIC** — [Polygon Faucet](https://faucet.polygon.technology) 등에서 테스트용 MATIC 수령.
+2. **루트에서 배포** — `.env`에 `PRIVATE_KEY` 등 입력 후:
+   ```bash
+   npm run deploy:amoy
+   ```
+   터미널에 나온 PolyPredict / MockUSDC 주소를 확인하고, `frontend/.env.local`이 갱신되었는지 확인합니다.
+3. **`NEXT_PUBLIC_CHAIN_ID`** — `npm run deploy:amoy`(또는 `deploy:local`) 실행 시 `scripts/deploy.ts`가 **Amoy는 80002, 로컬은 31337**로 `frontend/.env.local`에 자동 기록합니다. 수동으로 넣을 필요는 없습니다.
+4. **로컬에서 연결 테스트** — `cd frontend && npm run dev` 후 MetaMask 연결 → 네트워크가 다르면 화면의 **「Amoy / 로컬 네트워크로 전환」** 버튼 사용 가능.
+5. **Vercel** — Root Directory `frontend`, **환경 변수**에 `NEXT_PUBLIC_CONTRACT_ADDRESS`, `NEXT_PUBLIC_USDC_ADDRESS`, `NEXT_PUBLIC_CHAIN_ID=80002` 설정. 과제 제출용 공개 URL에서는 **`NEXT_PUBLIC_DEMO_ONLY`는 넣지 않거나 삭제** (오프체인 전용으로 숨기면 MetaMask 탭이 안 나옵니다).
+
+발표 순서 예시: (1) 사이트 접속 → (2) **EVM 체인** 선택 → (3) **MetaMask 연결** → (4) 필요 시 네트워크 전환 → (5) **approve → mintShares** 한 번 호출해 트랜잭션 확인.
+
 ---
 
 ## 🔑 핵심 함수 요약
